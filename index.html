@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Branch Reporting System - Pune-2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0f4c81;
+            --primary-light: #1a5fa0;
+            --primary-dark: #083358;
+            --accent: #00a8e8;
+            --accent-light: #4fc3f7;
+            --success: #00c853;
+            --warning: #ffa726;
+            --error: #ef5350;
+            --bg-gradient: linear-gradient(135deg, #0a2e4d 0%, #134d7a 50%, #0f4c81 100%);
+            --card-shadow: 0 8px 32px rgba(15, 76, 129, 0.15);
+            --hover-shadow: 0 12px 40px rgba(15, 76, 129, 0.25);
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1a1a1a;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            text-align: center;
+            border-top: 4px solid var(--primary);
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .date-display {
+            color: #666;
+            font-size: 16px;
+            margin: 12px 0;
+            font-weight: 400;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .mode-btn {
+            padding: 12px 32px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.3);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(15, 76, 129, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .view-container {
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+            border-left: 4px solid var(--accent);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--hover-shadow);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 24px;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 4px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .label-hint {
+            font-size: 11px;
+            color: #888;
+            font-weight: 400;
+            font-style: italic;
+            margin-left: 4px;
+        }
+
+        .tooltip-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 11px;
+            cursor: help;
+            margin-left: 4px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Outfit', sans-serif;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 168, 232, 0.1);
+        }
+
+        input:invalid {
+            border-color: var(--error);
+        }
+
+        input.filled {
+            border-color: var(--success);
+            background: rgba(0, 200, 83, 0.02);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        .validation-msg {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .validation-msg.show {
+            display: block;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 76, 129, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #00e676;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+        }
+
+        .btn-warning:hover {
+            background: #ffb74d;
+        }
+
+        .btn-secondary {
+            background: #757575;
+        }
+
+        .btn-secondary:hover {
+            background: #9e9e9e;
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-danger:hover {
+            background: #e57373;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .btn-group-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .report-preview {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            white-space: pre-wrap;
+            border: 2px solid #e0e0e0;
+            margin: 20px 0;
+            min-height: 300px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: none;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid var(--success);
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--error);
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid var(--accent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(15, 76, 129, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .stat-card .label {
+            font-size: 13px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .branch-submissions {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .branch-submissions::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .branch-submissions::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .branch-submissions::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .branch-item {
+            background: #f8f9fa;
+            padding: 18px;
+            margin: 12px 0;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .branch-item:hover {
+            background: #e9ecef;
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .branch-item .branch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .branch-item .branch-name {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .branch-item .timestamp {
+            font-size: 12px;
+            color: #999;
+            font-weight: 500;
+        }
+
+        .branch-item .preview-data {
+            font-size: 13px;
+            color: #666;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .preview-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .preview-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-value {
+            font-weight: 700;
+            color: #333;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .branch-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .branch-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+            margin: 0;
+            width: auto;
+        }
+
+        .sheets-config {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 2px solid var(--warning);
+        }
+
+        .sheets-config h3 {
+            color: #f57f17;
+            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .sheets-status {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .sheets-status.connected {
+            background: var(--success);
+            color: white;
+        }
+
+        .sheets-status.disconnected {
+            background: var(--error);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--primary);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-indicator {
+            background: #f5f5f5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 968px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn-group, .btn-group-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-data {
+                grid-template-columns: 1fr !important;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-new {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-edited {
+            background: var(--warning);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Daily Branch Reporting System</h1>
+            <div style="font-size: 18px; color: var(--primary); font-weight: 600; margin-top: 4px;">Pune-2 Cluster</div>
+            <div class="date-display">
+                📅 <span id="currentDate"></span>
+            </div>
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="switchMode('manager')">
+                    👤 Branch Manager
+                </button>
+                <button class="mode-btn" onclick="switchMode('cluster')">
+                    👔 Cluster Head
+                </button>
+            </div>
+        </div>
+
+        <!-- BRANCH MANAGER VIEW -->
+        <div id="managerView" class="view-container active">
+            <div class="card">
+                <h2>📝 Create Daily Report</h2>
+                
+                <div id="managerSuccess" class="message success-message"></div>
+                <div id="managerError" class="message error-message"></div>
+                <div id="managerInfo" class="message info-message"></div>
+
+                <div class="form-group full-width">
+                    <label>Select Your Branch</label>
+                    <select id="managerBranch" onchange="loadBranchData()">
+                        <option value="">-- Select Your Branch --</option>
+                        <option value="CAMP BRANCH_101">CAMP BRANCH_101</option>
+                        <option value="KOTHRUD BRANCH_102">KOTHRUD BRANCH_102</option>
+                        <option value="SHIVAJINAGAR BRANCH_103">SHIVAJINAGAR BRANCH_103</option>
+                        <option value="HADAPSAR BRANCH_104">HADAPSAR BRANCH_104</option>
+                        <option value="WAKAD BRANCH_105">WAKAD BRANCH_105</option>
+                        <option value="HINJEWADI BRANCH_106">HINJEWADI BRANCH_106</option>
+                        <option value="PIMPRI BRANCH_107">PIMPRI BRANCH_107</option>
+                        <option value="CHINCHWAD BRANCH_108">CHINCHWAD BRANCH_108</option>
+                        <option value="NIGDI BRANCH_109">NIGDI BRANCH_109</option>
+                        <option value="VIMAN NAGAR BRANCH_110">VIMAN NAGAR BRANCH_110</option>
+                        <option value="BANER BRANCH_111">BANER BRANCH_111</option>
+                        <option value="KATRAJ BRANCH_112">KATRAJ BRANCH_112</option>
+                    </select>
+                </div>
+
+                <div class="progress-indicator" id="formProgress" style="display: none;">
+                    <div>Form Progress: <strong><span id="progressText">0/22</span> fields filled</strong></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>
+                            CA NCA & IP#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Current Account - New Customer Acquisition">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="ca_nca_mtd" placeholder="MTD" step="1" min="0" oninput="validateMTDFTD('ca_nca'); updateProgress()">
+                            <input type="number" id="ca_nca_ftd" placeholder="FTD" step="1" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="ca_nca_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            SA NCA & IP#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Savings Account - New Customer Acquisition">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="sa_nca_mtd" placeholder="MTD" step="1" min="0" oninput="validateMTDFTD('sa_nca'); updateProgress()">
+                            <input type="number" id="sa_nca_ftd" placeholder="FTD" step="1" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="sa_nca_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            CASA Premium A/Cs#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Current & Savings Account - Premium">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="casa_premium_mtd" placeholder="MTD" step="1" min="0" oninput="validateMTDFTD('casa_premium'); updateProgress()">
+                            <input type="number" id="casa_premium_ftd" placeholder="FTD" step="1" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="casa_premium_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Non Premium A/Cs#
+                            <span class="label-hint">(MTD/FTD)</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="non_premium_mtd" placeholder="MTD" step="1" min="0" oninput="validateMTDFTD('non_premium'); updateProgress()">
+                            <input type="number" id="non_premium_ftd" placeholder="FTD" step="1" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="non_premium_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Total Fresh TDs (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Term Deposits">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="fresh_td_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('fresh_td'); updateProgress()">
+                            <input type="number" id="fresh_td_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="fresh_td_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            RA CORE Disb. (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Retail Assets - Core Disbursement">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="ra_core_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('ra_core'); updateProgress()">
+                            <input type="number" id="ra_core_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="ra_core_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Total SME Disb. (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Small & Medium Enterprises">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="sme_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('sme'); updateProgress()">
+                            <input type="number" id="sme_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="sme_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            CP Login (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Credit Protection">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="cp_login_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('cp_login'); updateProgress()">
+                            <input type="number" id="cp_login_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="cp_login_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            LI Login (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Life Insurance">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="li_login_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('li_login'); updateProgress()">
+                            <input type="number" id="li_login_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="li_login_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            GI Login (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="General Insurance">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="gi_login_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('gi_login'); updateProgress()">
+                            <input type="number" id="gi_login_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="gi_login_error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            LTSB (Rs. Lacs)#
+                            <span class="label-hint">(MTD/FTD)</span>
+                            <span class="tooltip-icon" title="Liability to Small Business">?</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="ltsb_mtd" placeholder="MTD" step="0.01" min="0" oninput="validateMTDFTD('ltsb'); updateProgress()">
+                            <input type="number" id="ltsb_ftd" placeholder="FTD" step="0.01" min="0" oninput="updateProgress()">
+                        </div>
+                        <div class="validation-msg" id="ltsb_error"></div>
+                    </div>
+                </div>
+
+                <div class="btn-group-3">
+                    <button class="btn" onclick="generateReport()">🔄 Generate Report</button>
+                    <button class="btn btn-secondary" onclick="clearManagerForm()">🗑️ Clear Form</button>
+                    <button class="btn btn-warning" id="editBtn" onclick="editSubmission()" style="display: none;">✏️ Edit Submission</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📄 Your Report Preview</h2>
+                <div class="report-preview" id="managerReportPreview">Fill in the form above and click "Generate Report" to see your daily report here...</div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="copyManagerReport()">
+                        📋 Copy Report
+                    </button>
+                    <button class="btn" onclick="submitToCluster()">
+                        ✅ Submit to Cluster Head
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLUSTER HEAD VIEW -->
+        <div id="clusterView" class="view-container">
+            <div class="card">
+                <h2>📊 Cluster Dashboard</h2>
+                
+                <div id="clusterSuccess" class="message success-message"></div>
+                <div id="clusterError" class="message error-message"></div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="number">12</div>
+                        <div class="label">Total Branches</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="submittedCountCluster">0</div>
+                        <div class="label">Submitted Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="pendingCountCluster">12</div>
+                        <div class="label">Pending Reports</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="lastUpdateTime">--:--</div>
+                        <div class="label">Last Update</div>
+                    </div>
+                </div>
+
+                <div class="sheets-config">
+                    <h3>☁️ Google Sheets Integration</h3>
+                    <div style="margin-bottom: 10px;">
+                        Status: <span class="sheets-status disconnected" id="sheetsStatus">Disconnected</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Google Sheets Web App URL</label>
+                        <input type="text" id="sheetsUrl" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-success" onclick="connectSheets()">
+                            🔗 Connect Sheets
+                        </button>
+                        <button class="btn btn-warning" onclick="syncToSheets()">
+                            ☁️ Sync All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📥 Branch Submissions</h2>
+                <button class="btn btn-secondary" onclick="refreshClusterData()" style="margin-bottom: 15px;">
+                    🔄 Refresh Data
+                </button>
+                <div class="branch-submissions" id="branchSubmissionsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading submissions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📈 Consolidated Report</h2>
+                <div class="report-preview" id="consolidatedReportPreview">Waiting for branch submissions...</div>
+                <div class="btn-group-3">
+                    <button class="btn btn-success" onclick="copyConsolidatedReport()">
+                        📋 Copy Report
+                    </button>
+                    <button class="btn btn-warning" onclick="showExportModal()">
+                        💾 Export Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAllData()">
+                        🗑️ Clear All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <h3>📊 Export Data</h3>
+            <p>Choose export format:</p>
+            <div class="export-options">
+                <button class="btn" onclick="exportJSON()">📄 JSON</button>
+                <button class="btn" onclick="exportCSV()">📊 CSV</button>
+                <button class="btn" onclick="exportExcel()">📗 Excel (XLSX)</button>
+                <button class="btn btn-secondary" onclick="closeExportModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmTitle">Confirm Action</h3>
+            <p id="confirmMessage"></p>
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="confirmYes">Yes, Continue</button>
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'pune2_branch_reports';
+        const HISTORY_KEY = 'pune2_branch_reports_history';
+        let currentMode = 'manager';
+        let reportsData = {};
+        let sheetsUrl = '';
+
+        // Initialize
+        function init() {
+            const today = new Date();
+            document.getElementById('currentDate').textContent = today.toLocaleDateString('en-IN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            loadFromStorage();
+            loadSheetsConfig();
+            
+            if (currentMode === 'cluster') {
+                refreshClusterData();
+            }
+        }
+
+        // Mode switching
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.view-container').forEach(view => view.classList.remove('active'));
+            
+            if (mode === 'manager') {
+                document.getElementById('managerView').classList.add('active');
+            } else {
+                document.getElementById('clusterView').classList.add('active');
+                refreshClusterData();
+            }
+        }
+
+        // Storage management
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    if (parsed.date === today) {
+                        reportsData = parsed.reports || {};
+                    } else {
+                        reportsData = {};
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showManagerError('Error loading saved data. Please refresh the page.');
+            }
+        }
+
+        function saveToStorage() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const data = {
+                    date: today,
+                    reports: reportsData,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                saveToHistory();
+            } catch (error) {
+                console.error('Error saving data:', error);
+                if (error.name === 'QuotaExceededError') {
+                    showManagerError('Storage quota exceeded. Please export and clear old data.');
+                } else {
+                    showManagerError('Error saving data. Please try again.');
+                }
+            }
+        }
+
+        function saveToHistory() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                let history = {};
+                
+                const saved = localStorage.getItem(HISTORY_KEY);
+                if (saved) {
+                    history = JSON.parse(saved);
+                }
+                
+                history[today] = JSON.parse(JSON.stringify(reportsData));
+                
+                // Keep only last 30 days
+                const dates = Object.keys(history).sort();
+                if (dates.length > 30) {
+                    dates.slice(0, dates.length - 30).forEach(date => {
+                        delete history[date];
+                    });
+                }
+                
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            } catch (error) {
+                console.error('Error saving history:', error);
+            }
+        }
+
+        // Branch data management
+        function loadBranchData() {
+            const branch = document.getElementById('managerBranch').value;
+            if (!branch) {
+                document.getElementById('formProgress').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('formProgress').style.display = 'block';
+
+            // Check if already submitted today
+            if (reportsData[branch]) {
+                const data = reportsData[branch].formData;
+                populateForm(data);
+                generateReport();
+                showManagerInfo('✅ Today\'s data loaded for ' + branch + '. You can edit and resubmit if needed.');
+                document.getElementById('editBtn').style.display = 'block';
+                return;
+            }
+
+            // Try to load previous day's data
+            loadPreviousDayData(branch);
+        }
+
+        function loadPreviousDayData(branch) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayKey = yesterday.toISOString().split('T')[0];
+            
+            try {
+                const saved = localStorage.getItem(HISTORY_KEY);
+                if (saved) {
+                    const history = JSON.parse(saved);
+                    if (history[yesterdayKey] && history[yesterdayKey][branch]) {
+                        const prevData = history[yesterdayKey][branch].formData;
+                        populateForm(prevData);
+                        generateReport();
+                        showManagerInfo('📋 Previous day\'s data loaded as reference. Please update and submit.');
+                        document.getElementById('editBtn').style.display = 'none';
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading previous day data:', error);
+            }
+            
+            clearManagerForm(false);
+            showManagerInfo('No previous data found. Please enter fresh data.');
+            document.getElementById('editBtn').style.display = 'none';
+        }
+
+        function populateForm(data) {
+            Object.keys(data).forEach(key => {
+                const elem = document.getElementById(key);
+                if (elem) {
+                    elem.value = data[key] || '';
+                    if (data[key]) elem.classList.add('filled');
+                }
+            });
+            updateProgress();
+        }
+
+        // Validation
+        function validateMTDFTD(fieldPrefix) {
+            const mtd = parseFloat(document.getElementById(fieldPrefix + '_mtd').value) || 0;
+            const ftd = parseFloat(document.getElementById(fieldPrefix + '_ftd').value) || 0;
+            const errorElem = document.getElementById(fieldPrefix + '_error');
+            
+            if (ftd > mtd && mtd > 0) {
+                errorElem.textContent = 'FTD cannot be greater than MTD';
+                errorElem.classList.add('show');
+                return false;
+            } else {
+                errorElem.classList.remove('show');
+                return true;
+            }
+        }
+
+        function validateAllFields() {
+            const fields = ['ca_nca', 'sa_nca', 'casa_premium', 'non_premium', 'fresh_td', 'ra_core', 'sme', 'cp_login', 'li_login', 'gi_login', 'ltsb'];
+            let isValid = true;
+            
+            fields.forEach(field => {
+                if (!validateMTDFTD(field)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const inputs = document.querySelectorAll('#managerView input[type="number"]');
+            let filled = 0;
+            
+            inputs.forEach(input => {
+                if (input.value && input.value !== '') {
+                    filled++;
+                    input.classList.add('filled');
+                } else {
+                    input.classList.remove('filled');
+                }
+            });
+            
+            const total = inputs.length;
+            const percentage = (filled / total) * 100;
+            
+            document.getElementById('progressText').textContent = `${filled}/${total}`;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        // Report generation
+        function generateReport() {
+            const branch = document.getElementById('managerBranch').value;
+            if (!branch) {
+                showManagerError('Please select your branch first');
+                return;
+            }
+
+            if (!validateAllFields()) {
+                showManagerError('Please fix validation errors before generating report');
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('en-GB');
+            
+            const formData = {
+                ca_nca_mtd: document.getElementById('ca_nca_mtd').value || '00',
+                ca_nca_ftd: document.getElementById('ca_nca_ftd').value || '00',
+                sa_nca_mtd: document.getElementById('sa_nca_mtd').value || '00',
+                sa_nca_ftd: document.getElementById('sa_nca_ftd').value || '00',
+                casa_premium_mtd: document.getElementById('casa_premium_mtd').value || '00',
+                casa_premium_ftd: document.getElementById('casa_premium_ftd').value || '00',
+                non_premium_mtd: document.getElementById('non_premium_mtd').value || '00',
+                non_premium_ftd: document.getElementById('non_premium_ftd').value || '00',
+                fresh_td_mtd: document.getElementById('fresh_td_mtd').value || '0.00',
+                fresh_td_ftd: document.getElementById('fresh_td_ftd').value || '0.00',
+                ra_core_mtd: document.getElementById('ra_core_mtd').value || '0.00',
+                ra_core_ftd: document.getElementById('ra_core_ftd').value || '0.00',
+                sme_mtd: document.getElementById('sme_mtd').value || '0.00',
+                sme_ftd: document.getElementById('sme_ftd').value || '0.00',
+                cp_login_mtd: document.getElementById('cp_login_mtd').value || '0.00',
+                cp_login_ftd: document.getElementById('cp_login_ftd').value || '0.00',
+                li_login_mtd: document.getElementById('li_login_mtd').value || '0.00',
+                li_login_ftd: document.getElementById('li_login_ftd').value || '0.00',
+                gi_login_mtd: document.getElementById('gi_login_mtd').value || '0.00',
+                gi_login_ftd: document.getElementById('gi_login_ftd').value || '0.00',
+                ltsb_mtd: document.getElementById('ltsb_mtd').value || '0.00',
+                ltsb_ftd: document.getElementById('ltsb_ftd').value || '0.00'
+            };
+
+            const report = `Daily Reporting of: ${branch}
+${today}
+
+CA NCA & IP# : ${formData.ca_nca_mtd}/${formData.ca_nca_ftd}
+SA NCA & IP# : ${formData.sa_nca_mtd}/${formData.sa_nca_ftd}
+CASA Premium A/Cs # : ${formData.casa_premium_mtd}/${formData.casa_premium_ftd}
+Non Premium A/Cs # : ${formData.non_premium_mtd}/${formData.non_premium_ftd}
+Total Fresh TDs mobilised (Rs. Lacs) #: ${formData.fresh_td_mtd}/${formData.fresh_td_ftd}
+RA CORE Disb.(Rs.in Lacs) #: ${formData.ra_core_mtd}/${formData.ra_core_ftd}
+Total SME Disb.(Rs.in Lacs) #: ${formData.sme_mtd}/${formData.sme_ftd}
+CP Login(Rs.In Lacs)#: ${formData.cp_login_mtd}/${formData.cp_login_ftd}
+LI Login (Rs. In lacs)#: ${formData.li_login_mtd}/${formData.li_login_ftd}
+GI Login ( Rs. IN lacs)#: ${formData.gi_login_mtd}/${formData.gi_login_ftd}
+LTSB (Rs.in Lacs)#: ${formData.ltsb_mtd}/${formData.ltsb_ftd}`;
+
+            document.getElementById('managerReportPreview').textContent = report;
+            
+            window.currentReport = {
+                branch: branch,
+                report: report,
+                formData: formData,
+                timestamp: new Date().toISOString()
+            };
+
+            showManagerSuccess('✅ Report generated successfully! Review and submit when ready.');
+        }
+
+        function copyManagerReport() {
+            const report = document.getElementById('managerReportPreview').textContent;
+            if (report.includes('Fill in the form')) {
+                showManagerError('Please generate a report first');
+                return;
+            }
+
+            navigator.clipboard.writeText(report).then(() => {
+                showManagerSuccess('✅ Report copied to clipboard! You can paste it to WhatsApp.');
+            }).catch(() => {
+                showManagerError('Failed to copy. Please select and copy manually.');
+            });
+        }
+
+        function submitToCluster() {
+            if (!window.currentReport) {
+                showManagerError('Please generate a report first');
+                return;
+            }
+
+            if (!validateAllFields()) {
+                showManagerError('Please fix validation errors before submitting');
+                return;
+            }
+
+            const branch = window.currentReport.branch;
+            const isEdit = reportsData[branch] !== undefined;
+            
+            reportsData[branch] = window.currentReport;
+            saveToStorage();
+
+            showManagerSuccess(`✅ Report ${isEdit ? 'updated' : 'submitted'} successfully for ${branch}!`);
+            document.getElementById('editBtn').style.display = 'block';
+
+            // Auto-sync to Google Sheets
+            if (sheetsUrl) {
+                syncSingleBranchToSheets(branch, window.currentReport)
+                    .then(success => {
+                        if (success) {
+                            console.log('Auto-synced to Google Sheets');
+                        }
+                    })
+                    .catch(error => {
+                        console.warn('Auto-sync error:', error);
+                    });
+            }
+        }
+
+        function editSubmission() {
+            showManagerInfo('You can now edit the form and resubmit the report.');
+        }
+
+        function clearManagerForm(clearBranch = true) {
+            if (clearBranch) {
+                const confirmed = confirm('Are you sure you want to clear the entire form?');
+                if (!confirmed) return;
+                
+                document.getElementById('managerBranch').value = '';
+                document.getElementById('formProgress').style.display = 'none';
+                document.getElementById('editBtn').style.display = 'none';
+            }
+            
+            const inputs = document.querySelectorAll('#managerView input[type="number"]');
+            inputs.forEach(input => {
+                input.value = '';
+                input.classList.remove('filled');
+            });
+            
+            document.getElementById('managerReportPreview').textContent = 'Fill in the form above and click "Generate Report" to see your daily report here...';
+            window.currentReport = null;
+            updateProgress();
+            
+            // Clear all validation messages
+            document.querySelectorAll('.validation-msg').forEach(msg => {
+                msg.classList.remove('show');
+            });
+        }
+
+        // Cluster view functions
+        function refreshClusterData() {
+            loadFromStorage();
+            updateClusterStats();
+            displayBranchSubmissions();
+            generateConsolidatedReport();
+        }
+
+        function updateClusterStats() {
+            const submitted = Object.keys(reportsData).length;
+            const pending = 12 - submitted;
+            
+            document.getElementById('submittedCountCluster').textContent = submitted;
+            document.getElementById('pendingCountCluster').textContent = pending;
+
+            if (submitted > 0) {
+                const timestamps = Object.values(reportsData).map(r => new Date(r.timestamp));
+                const latest = new Date(Math.max(...timestamps));
+                document.getElementById('lastUpdateTime').textContent = latest.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else {
+                document.getElementById('lastUpdateTime').textContent = '--:--';
+            }
+        }
+
+        function displayBranchSubmissions() {
+            const container = document.getElementById('branchSubmissionsList');
+            
+            if (Object.keys(reportsData).length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                            <path d="M7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+                        </svg>
+                        <h3>No submissions yet today</h3>
+                        <p>Waiting for branch reports...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            const sortedBranches = Object.entries(reportsData).sort((a, b) => 
+                new Date(b[1].timestamp) - new Date(a[1].timestamp)
+            );
+
+            sortedBranches.forEach(([branch, data]) => {
+                const item = document.createElement('div');
+                item.className = 'branch-item';
+                
+                const time = new Date(data.timestamp).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const formData = data.formData;
+                
+                item.innerHTML = `
+                    <div class="branch-header">
+                        <div class="branch-name">${branch}</div>
+                        <div class="timestamp">⏰ ${time}</div>
+                    </div>
+                    <div class="preview-data">
+                        <div class="preview-item">
+                            <div class="preview-label">CA NCA</div>
+                            <div class="preview-value">${formData.ca_nca_mtd}/${formData.ca_nca_ftd}</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">SA NCA</div>
+                            <div class="preview-value">${formData.sa_nca_mtd}/${formData.sa_nca_ftd}</div>
+                        </div>
+                        <div class="preview-item">
+                            <div class="preview-label">Fresh TDs</div>
+                            <div class="preview-value">₹${formData.fresh_td_mtd}/${formData.fresh_td_ftd}L</div>
+                        </div>
+                    </div>
+                    <div class="branch-actions">
+                        <button class="btn btn-secondary" onclick='viewFullReport(\`${branch}\`)'>👁️ View Full</button>
+                        <button class="btn btn-danger" onclick='deleteBranchReport(\`${branch}\`)'>🗑️ Delete</button>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function viewFullReport(branch) {
+            if (reportsData[branch]) {
+                alert(reportsData[branch].report);
+            }
+        }
+
+        function deleteBranchReport(branch) {
+            showConfirmModal(
+                'Delete Report',
+                `Are you sure you want to delete the report for ${branch}? This action cannot be undone.`,
+                () => {
+                    delete reportsData[branch];
+                    saveToStorage();
+                    refreshClusterData();
+                    showClusterSuccess(`✅ Report for ${branch} deleted successfully.`);
+                    closeConfirmModal();
+                }
+            );
+        }
+
+        function generateConsolidatedReport() {
+            if (Object.keys(reportsData).length === 0) {
+                document.getElementById('consolidatedReportPreview').textContent = 'Waiting for branch submissions...';
+                return;
+            }
+
+            const today = new Date().toLocaleDateString('en-GB');
+            
+            const totals = {
+                ca_nca_mtd: 0, ca_nca_ftd: 0,
+                sa_nca_mtd: 0, sa_nca_ftd: 0,
+                casa_premium_mtd: 0, casa_premium_ftd: 0,
+                non_premium_mtd: 0, non_premium_ftd: 0,
+                fresh_td_mtd: 0, fresh_td_ftd: 0,
+                ra_core_mtd: 0, ra_core_ftd: 0,
+                sme_mtd: 0, sme_ftd: 0,
+                cp_login_mtd: 0, cp_login_ftd: 0,
+                li_login_mtd: 0, li_login_ftd: 0,
+                gi_login_mtd: 0, gi_login_ftd: 0,
+                ltsb_mtd: 0, ltsb_ftd: 0
+            };
+
+            let liActivatedBranches = 0;
+            const submittedBranches = Object.keys(reportsData).length;
+
+            Object.values(reportsData).forEach(report => {
+                const data = report.formData;
+                
+                Object.keys(totals).forEach(key => {
+                    totals[key] += parseFloat(data[key]) || 0;
+                });
+
+                if (parseFloat(data.li_login_ftd) > 0) {
+                    liActivatedBranches++;
+                }
+            });
+
+            const consolidatedReport = `Daily Reporting of: Pune-2
+${today}
+
+CA NCA & IP # : ${Math.round(totals.ca_nca_mtd)}/${Math.round(totals.ca_nca_ftd)}
+SA NCA & IP # : ${Math.round(totals.sa_nca_mtd)}/${Math.round(totals.sa_nca_ftd)}
+CASA Premium A/Cs # : ${Math.round(totals.casa_premium_mtd)}/${Math.round(totals.casa_premium_ftd)}
+Non Premium A/Cs # : ${Math.round(totals.non_premium_mtd)}/${Math.round(totals.non_premium_ftd)}
+Total Fresh TDs mobilised (Rs. Lacs) # : ${totals.fresh_td_mtd.toFixed(2)}/${totals.fresh_td_ftd.toFixed(2)}
+RA CORE Disb.(Rs.in Lacs) # : ${totals.ra_core_mtd.toFixed(2)}/${totals.ra_core_ftd.toFixed(2)}
+Total SME Disb.(Rs.in Lacs) # : ${totals.sme_mtd.toFixed(2)}/${totals.sme_ftd.toFixed(2)}
+CP Login # : ${totals.cp_login_mtd.toFixed(2)}/${totals.cp_login_ftd.toFixed(2)}
+LI Login # : ${totals.li_login_mtd.toFixed(2)}/${totals.li_login_ftd.toFixed(2)}
+GI Login # : ${totals.gi_login_mtd.toFixed(2)}/${totals.gi_login_ftd.toFixed(2)}
+LTSB # : ${totals.ltsb_mtd.toFixed(2)}/${totals.ltsb_ftd.toFixed(2)}
+LI Activated Br # : ${submittedBranches}/${liActivatedBranches}
+FTD Disb. # : ${totals.ra_core_ftd.toFixed(2)}
+MTD Disb. # : ${totals.ra_core_mtd.toFixed(2)}`;
+
+            document.getElementById('consolidatedReportPreview').textContent = consolidatedReport;
+        }
+
+        function copyConsolidatedReport() {
+            const report = document.getElementById('consolidatedReportPreview').textContent;
+            if (report.includes('Waiting for')) {
+                showClusterError('No data to copy yet');
+                return;
+            }
+
+            navigator.clipboard.writeText(report).then(() => {
+                showClusterSuccess('✅ Consolidated report copied to clipboard!');
+            }).catch(() => {
+                showClusterError('Failed to copy. Please select and copy manually.');
+            });
+        }
+
+        function clearAllData() {
+            showConfirmModal(
+                'Clear All Data',
+                'Are you sure you want to clear ALL branch reports for today? This action cannot be undone.',
+                () => {
+                    reportsData = {};
+                    saveToStorage();
+                    refreshClusterData();
+                    showClusterSuccess('✅ All data cleared successfully.');
+                    closeConfirmModal();
+                }
+            );
+        }
+
+        // Export functions
+        function showExportModal() {
+            document.getElementById('exportModal').classList.add('show');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('show');
+        }
+
+        function exportJSON() {
+            const today = new Date().toISOString().split('T')[0];
+            const exportData = {
+                date: today,
+                cluster: 'Pune-2',
+                totalBranches: 12,
+                submittedBranches: Object.keys(reportsData).length,
+                reports: reportsData,
+                consolidatedReport: document.getElementById('consolidatedReportPreview').textContent,
+                exportedAt: new Date().toISOString()
+            };
+
+            downloadFile(
+                JSON.stringify(exportData, null, 2),
+                `pune2-reports-${today}.json`,
+                'application/json'
+            );
+            
+            closeExportModal();
+            showClusterSuccess('💾 JSON export downloaded successfully!');
+        }
+
+        function exportCSV() {
+            const today = new Date().toISOString().split('T')[0];
+            let csv = 'Branch,Date,Time,CA_NCA_MTD,CA_NCA_FTD,SA_NCA_MTD,SA_NCA_FTD,CASA_Premium_MTD,CASA_Premium_FTD,Non_Premium_MTD,Non_Premium_FTD,Fresh_TD_MTD,Fresh_TD_FTD,RA_CORE_MTD,RA_CORE_FTD,SME_MTD,SME_FTD,CP_Login_MTD,CP_Login_FTD,LI_Login_MTD,LI_Login_FTD,GI_Login_MTD,GI_Login_FTD,LTSB_MTD,LTSB_FTD\n';
+            
+            Object.entries(reportsData).forEach(([branch, data]) => {
+                const d = data.formData;
+                const timestamp = new Date(data.timestamp);
+                csv += `${branch},${today},${timestamp.toLocaleTimeString()},${d.ca_nca_mtd},${d.ca_nca_ftd},${d.sa_nca_mtd},${d.sa_nca_ftd},${d.casa_premium_mtd},${d.casa_premium_ftd},${d.non_premium_mtd},${d.non_premium_ftd},${d.fresh_td_mtd},${d.fresh_td_ftd},${d.ra_core_mtd},${d.ra_core_ftd},${d.sme_mtd},${d.sme_ftd},${d.cp_login_mtd},${d.cp_login_ftd},${d.li_login_mtd},${d.li_login_ftd},${d.gi_login_mtd},${d.gi_login_ftd},${d.ltsb_mtd},${d.ltsb_ftd}\n`;
+            });
+
+            downloadFile(csv, `pune2-reports-${today}.csv`, 'text/csv');
+            closeExportModal();
+            showClusterSuccess('💾 CSV export downloaded successfully!');
+        }
+
+        function exportExcel() {
+            showClusterError('Excel export requires additional libraries. Use CSV export instead.');
+            closeExportModal();
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Google Sheets Integration
+        function loadSheetsConfig() {
+            const saved = localStorage.getItem('sheetsUrl');
+            if (saved) {
+                sheetsUrl = saved;
+                document.getElementById('sheetsUrl').value = saved;
+                updateSheetsStatus(true);
+            }
+        }
+
+        function connectSheets() {
+            const url = document.getElementById('sheetsUrl').value.trim();
+            if (!url) {
+                showClusterError('Please enter Google Sheets Web App URL');
+                return;
+            }
+
+            if (!url.includes('script.google.com')) {
+                showClusterError('Invalid URL. Please enter a valid Google Apps Script Web App URL.');
+                return;
+            }
+
+            sheetsUrl = url;
+            localStorage.setItem('sheetsUrl', url);
+            updateSheetsStatus(true);
+            showClusterSuccess('✅ Google Sheets connected! Data will auto-sync on submission.');
+        }
+
+        function updateSheetsStatus(connected) {
+            const statusElem = document.getElementById('sheetsStatus');
+            if (connected) {
+                statusElem.textContent = '✅ Connected';
+                statusElem.className = 'sheets-status connected';
+            } else {
+                statusElem.textContent = '❌ Disconnected';
+                statusElem.className = 'sheets-status disconnected';
+            }
+        }
+
+        async function syncToSheets() {
+            if (!sheetsUrl) {
+                showClusterError('Please connect Google Sheets first');
+                return;
+            }
+
+            if (Object.keys(reportsData).length === 0) {
+                showClusterError('No data to sync');
+                return;
+            }
+
+            try {
+                showClusterSuccess('⏳ Syncing to Google Sheets...');
+                let successCount = 0;
+
+                for (const [branch, data] of Object.entries(reportsData)) {
+                    const success = await syncSingleBranchToSheets(branch, data);
+                    if (success) successCount++;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                showClusterSuccess(`✅ Synced ${successCount} branches to Google Sheets!`);
+            } catch (error) {
+                console.error('Sync error:', error);
+                showClusterError('❌ Sync failed. Check console for details.');
+            }
+        }
+
+        async function syncSingleBranchToSheets(branch, data) {
+            if (!sheetsUrl) return false;
+
+            try {
+                const payload = {
+                    action: 'addReport',
+                    date: new Date().toISOString().split('T')[0],
+                    branch: branch,
+                    timestamp: data.timestamp,
+                    ...data.formData
+                };
+
+                await fetch(sheetsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors'
+                });
+
+                console.log('✅ Synced:', branch);
+                return true;
+            } catch (error) {
+                console.error('❌ Sync error:', branch, error);
+                return false;
+            }
+        }
+
+        // Modal functions
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmYes').onclick = onConfirm;
+            document.getElementById('confirmModal').classList.add('show');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+
+        // Message helpers
+        function showManagerSuccess(msg) {
+            showMessage('managerSuccess', msg);
+        }
+
+        function showManagerError(msg) {
+            showMessage('managerError', msg);
+        }
+
+        function showManagerInfo(msg) {
+            showMessage('managerInfo', msg);
+        }
+
+        function showClusterSuccess(msg) {
+            showMessage('clusterSuccess', msg);
+        }
+
+        function showClusterError(msg) {
+            showMessage('clusterError', msg);
+        }
+
+        function showMessage(elemId, msg) {
+            const elem = document.getElementById(elemId);
+            elem.textContent = msg;
+            elem.classList.add('show');
+            setTimeout(() => elem.classList.remove('show'), 5000);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+
+        // Auto-refresh cluster view
+        setInterval(() => {
+            if (currentMode === 'cluster') {
+                loadFromStorage();
+                updateClusterStats();
+                displayBranchSubmissions();
+                generateConsolidatedReport();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
